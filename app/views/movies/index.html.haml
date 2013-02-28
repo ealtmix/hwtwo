@@ -1,0 +1,48 @@
+-#  This file is app/views/movies/index.html.haml
+%h1 All Movies
+
+
+-if(params[:ratings].nil? != true) # checks rating filter via GET/POST
+  -@currents.each_key do |rating|
+    -if(params[:ratings].has_key?(rating))
+      -@currents[rating] = 1
+      -@cur_string = @cur_string + "ratings[%s]=1&" % rating
+    -else
+      -if(@currents.has_key?(rating))
+        -@currents.delete(rating)
+
+~#%p #{@currents}
+= form_tag movies_path, :method => :get , :id => 'ratings_form' do # builds filter check boxes
+  Include:
+  -@allratings.each do |rating|
+    =rating
+    -if @currents[rating].nil? == false && (@currents[rating] == 1 || @currents[rating] == '1')
+      =check_box_tag "ratings[#{rating}]", '1', true, :id => 'ratings_'+rating.to_s
+    -else
+      =check_box_tag "ratings[#{rating}]", '1', false, :id => 'ratings_'+rating.to_s
+  =hidden_field_tag :sort, params[:sort]
+  =submit_tag "Refresh", :id => 'rating_submit'
+
+~#%p #{@currents}
+%table#movies 
+  %thead
+    %tr
+      -if( params[:sort] == '1' || params[:sort] == 1 || session[:sort] == 'title')
+        %th{:class => "hilite"}= link_to "Movie Title", movies_path()+'?sort=1&'+@cur_string, :id => 'title_header'
+      -else
+        %th= link_to "Movie Title", movies_path()+'?sort=1&'+@cur_string, :id => 'title_header'
+      %th Rating
+      -if( params[:sort] == '2' || params[:sort] == 2|| session[:sort] == 'date')
+        %th{:class => "hilite"}= link_to "Release Date", movies_path()+'?sort=2&'+@cur_string, :id => 'release_date_header'
+      -else
+        %th= link_to "Release Date", movies_path()+'?sort=2&'+@cur_string, :id => 'release_date_header'
+      %th More Info
+  %tbody
+    - @movies.each do |movie|
+      %tr
+        %td= movie.title 
+        %td= movie.rating
+        %td= movie.release_date
+        %td= link_to "More about #{movie.title}", movie_path(movie)
+
+= link_to 'Add new movie', new_movie_path
